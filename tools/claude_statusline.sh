@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Claude Code status line: directory, git branch, model · effort, context used %.
-#   ➜  my-repo  git:(main) ✗  Opus 5.5·medium  ctx 42%
-# Context % turns yellow above 60% and red above 80%, a heads-up before auto-compact.
+# Claude Code status line: directory, git branch, model · effort, context size.
+#   ➜  my-repo  git:(main) ✗  Opus 5.5·medium  ctx 85k
+# ctx = tokens in the context window, re-read on every turn. Yellow above 150k, red above 300k:
+# a cue to /compact (same task) or /clear (new task).
 # Hide it (e.g. for presentations): touch ~/.claude/.statusline-off  — remove the file to restore.
 # Requires jq.
 input=$(cat)
@@ -28,8 +29,8 @@ model=$(echo "$input" | jq -r '.model.display_name // empty')
 effort=$(echo "$input" | jq -r '.effort.level // empty')
 [ -n "$model" ] && printf "  ${CYAN}%s%s${RESET}" "$model" "${effort:+·$effort}"
 
-ctx=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
-if [ -n "$ctx" ]; then
-  if [ "$ctx" -gt 80 ]; then c=$RED; elif [ "$ctx" -gt 60 ]; then c=$YELLOW; else c=$GREEN; fi
-  printf "  ${c}ctx %s%%${RESET}" "$ctx"
+tok=$(echo "$input" | jq -r '.context_window.total_input_tokens // 0')
+if [ "$tok" -gt 0 ]; then
+  if [ "$tok" -gt 300000 ]; then c=$RED; elif [ "$tok" -gt 150000 ]; then c=$YELLOW; else c=$GREEN; fi
+  printf "  ${c}ctx %sk${RESET}" "$((tok / 1000))"
 fi

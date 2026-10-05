@@ -32,17 +32,19 @@ directly in a terminal, not from something that can't answer an interactive pass
 
 ### `tools/claude_statusline.sh`
 
-A Claude Code status line showing the current
-directory, git branch (with a `✗` when the tree is dirty), model and effort level, and how much of
-the context window is used:
+A Claude Code status line showing the current directory, git branch (with a `✗` when the tree is
+dirty), model and effort level, and how many tokens are in the context window:
 
 ```
-➜  my-repo  git:(main) ✗  Opus 5.5·medium  ctx 42%
+➜  my-repo  git:(main) ✗  Opus 5.5·medium  ctx 85k
 ```
 
-The context percentage turns yellow above 60% and red above 80% — a heads-up before Claude Code
-auto-compacts the conversation. Everything comes from the JSON Claude Code already passes to the
-status line, so it runs locally and costs no tokens. Requires `jq`.
+Every turn re-reads the whole context (cheaply, from the prompt cache, but the cost scales with its
+size), so `ctx` turns yellow above 150k tokens and red above 300k, a cue to `/compact` when
+continuing the same task or `/clear` when starting a new one. It shows a raw token count rather
+than a percentage because percentages hide size on large context windows (30% of 1M is 300k
+tokens per turn). Everything comes from the JSON Claude Code already passes to the status line, so
+it runs locally and costs no tokens. Requires `jq`.
 
 Setup — copy the script somewhere stable and point `~/.claude/settings.json` at it:
 
@@ -51,6 +53,11 @@ Setup — copy the script somewhere stable and point `~/.claude/settings.json` a
   "statusLine": { "type": "command", "command": "bash ~/.claude/claude_statusline.sh" }
 }
 ```
+
+**Windows:** Claude Code runs status line commands through Git Bash when it's installed, so the same
+script should run there (not yet tested on a Windows machine). Two differences: Git Bash doesn't
+come with `jq` (`winget install jqlang.jq`), and paths in `settings.json` must use forward slashes
+(`~` works). Without Git Bash, Claude Code falls back to PowerShell and this Bash script won't run.
 
 **Hiding it** (screen sharing, presentations): the script prints nothing while
 `~/.claude/.statusline-off` exists. A toggle alias for `~/.zshrc` (or Oh My Zsh's
