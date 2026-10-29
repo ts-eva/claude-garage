@@ -30,6 +30,14 @@ Example — wake at 8am, sleep at 5:30pm, weekdays only:
 weekdays, `MTWTFSU` for every day). Defaults to weekdays if omitted. Requires `sudo` — run it
 directly in a terminal, not from something that can't answer an interactive password prompt.
 
+### `tools/code-review-automation/`
+
+Prepares reviews of GitLab merge requests in the background with your own Claude Code review
+command, a few minutes after something changes. Detection is plain GitLab API calls, so a quiet
+queue costs no tokens. Findings are saved as private draft comments for you to publish, and by
+default approving and merging are blocked. What the review looks for stays in your own command.
+macOS, Linux and Windows, Python standard library only. See [its README](tools/code-review-automation/README.md).
+
 ### `tools/claude_statusline.sh`
 
 A Claude Code status line showing the current directory, git branch (with a `✗` when the tree is
